@@ -1,35 +1,45 @@
+#include "util.hpp"
 #include "led_task.hpp"
-#include "driver/gpio.h"
 
-void
-led_task::run() {
-    while (true) {
-        if (task_type == FAST) {
-            fast_exec();
-        } else {
-            slow_exec();
-        }
+led_task_t g_led_task_type;
+
+void led_task(void *arg)
+{
+    led_task_manager_t *manager = (led_task_manager_t *)arg;
+    while (true)
+    {
+        manager->run();
     }
 }
 
-void
-init_led(gpio_num_t pin) {
-    gpio_pad_select_gpio(pin);
-    gpio_set_direction(pin, GPIO_MODE_OUTPUT);
+void led_task_manager_t::run()
+{
+    if (g_led_task_type == FAST)
+    {
+        fast_exec();
+    }
+    else
+    {
+        slow_exec();
+    }
 }
 
-
-void
-led_task::fast_exec() {
-    gpio_set_level(this.led_pin, 1);
-    vTaskDelay(1000 / portTICK_PERIOD_MS);
-    gpio_set_level(led_pin, 0);
-    vTaskDelay(1000 / portTICK_PERIOD_MS);
+void led_task_manager_t::init()
+{
+    g_led_task_type = FAST;
 }
-void
-led_task::slow_exec() {
+
+void inline led_task_manager_t::fast_exec()
+{
     gpio_set_level(led_pin, 1);
-    vTaskDelay(2000 / portTICK_PERIOD_MS);
+    vTaskMilliSecondDelay(1000);
     gpio_set_level(led_pin, 0);
-    vTaskDelay(2000 / portTICK_PERIOD_MS);
+    vTaskMilliSecondDelay(1000);
+}
+void inline led_task_manager_t::slow_exec()
+{
+    gpio_set_level(led_pin, 1);
+    vTaskMilliSecondDelay(2000);
+    gpio_set_level(led_pin, 0);
+    vTaskMilliSecondDelay(2000);
 }

@@ -2,21 +2,29 @@
 
 #include <driver/gpio.h>
 
-typedef enum {
+typedef enum
+{
     FAST,
     SLOW
 } led_task_t;
 
-class led_task_manager_t {
-    public:
-        void led_task(gpio_num_t pin).led_pin(pin) {};
-        void fast_exec();
-        void slow_exec();
+class led_task_manager_t
+{
+public:
+    led_task_manager_t(gpio_num_t pin)
+    {
+        gpio_pad_select_gpio(pin);
+        gpio_set_direction(pin, GPIO_MODE_OUTPUT);
+        this->led_pin = pin;
+    }
 
-        void init();
-    private:
-        gpio_num_t led_pin;
+    void run();
+    void init();
+
+private:
+    void inline fast_exec();
+    void inline slow_exec();
+    gpio_num_t led_pin;
 };
 
-
-
+void led_task(void *arg);
