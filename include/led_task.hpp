@@ -3,10 +3,14 @@
 #include <driver/gpio.h>
 #include <freertos/FreeRTOS.h>
 
+#define LED_QUEUE_SIZE 10
+extern QueueHandle_t g_led_queue;
+
+// from serial or communication(todo) or sensor?
 typedef enum
 {
     FAST,
-    SLOW
+    SLOW,
 } led_task_t;
 
 class led_task_manager_t

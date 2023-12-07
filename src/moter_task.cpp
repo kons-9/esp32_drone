@@ -1,21 +1,20 @@
 #include "moter_task.hpp"
 #include "util.hpp"
-#include <freertos/queue.h>
 
-static const char *TAG = "moter_driver_t";
+static const char *TAG = "moter_task";
 
-#define MOTER_QUEUE_SIZE 10
-QueueHandle_t moter_queue;
+QueueHandle_t g_moter_queue;
 
 void moter_task(void *arg)
 {
     moter_driver_t *driver = (moter_driver_t *)arg;
     speed_t speed = 0;
+
     while (true)
     {
-        if (xQueueReceive(moter_queue, &speed, 10) == pdTRUE)
+        if (xQueueReceive(g_moter_queue, &speed, 10) == pdTRUE)
         {
-            ESP_LOGI(TAG, "speed: %d", speed);
+            ESP_LOGI(TAG, "speed: %d", (uint8_t)speed);
             driver->exec(speed);
         }
     }

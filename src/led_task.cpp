@@ -1,49 +1,46 @@
 #include "util.hpp"
 #include "led_task.hpp"
-#include <freertos/queue.h>
 
-static const char *TAG = "led_task_manager_t";
-
-// from serial or communication(todo) or sensor?
-#define LED_QUEUE_SIZE 10
-QueueHandle_t led_queue;
+static const char *TAG = "led_task";
+QueueHandle_t g_led_queue = NULL;
 
 void led_task(void *arg)
 {
     led_task_manager_t *manager = (led_task_manager_t *)arg;
-    while (true)
-    {
-        manager->run();
-    }
+    manager->run();
 }
 
 void led_task_manager_t::run()
 {
     led_task_t cur_task_type;
-    if (xQueueReceive(led_queue, &cur_task_type, 10) == pdTRUE)
+    while (true)
     {
-        switch (cur_task_type)
+        if (xQueueReceive(g_led_queue, &cur_task_type, 0) == pdTRUE)
         {
-        case FAST:
-            ESP_LOGI(TAG, "FAST");
-            fast_exec();
-            break;
-        case SLOW:
-            ESP_LOGI(TAG, "SLOW");
-            slow_exec();
-            break;
-        default:
-            ESP_LOGE(TAG, "Unknown task type");
-            break;
+            switch (cur_task_type)
+            {
+            case FAST:
+                ESP_LOGI(TAG, "FAST");
+                fast_exec();
+                break;
+            case SLOW:
+                ESP_LOGI(TAG, "SLOW");
+                slow_exec();
+                break;
+            default:
+                ESP_LOGE(TAG, "Unknown task type");
+                break;
+            }
+            led_task_type = cur_task_type;
         }
-        led_task_type = cur_task_type;
     }
 }
 
+// コンストラクタ内部でやってもいいかも
 void led_task_manager_t::init()
 {
-    led_queue = xQueueCreate(LED_QUEUE_SIZE, sizeof(led_task_t));
-    if (led_queue == NULL)
+    g_led_queue = xQueueCreate(LED_QUEUE_SIZE, sizeof(led_task_t));
+    if (g_led_queue == NULL)
     {
         ESP_LOGE(TAG, "Failed to create queue");
         exit(1);

@@ -1,8 +1,10 @@
 #pragma once
 #include "util.hpp"
 
-static const char *TAG = "moter_driver";
 using speed_t = uint32_t;
+
+#define MOTER_QUEUE_SIZE 10
+extern QueueHandle_t g_moter_queue;
 
 void moter_task(void *arg);
 
@@ -14,7 +16,7 @@ public:
         this->out = out;
         gpio_pad_select_gpio(this->out);
         gpio_set_direction(this->out, GPIO_MODE_OUTPUT);
-        ESP_LOGI(TAG, "moter_driver_t constructor called");
+        ESP_LOGI("moter_task_h", "moter_driver_t constructor called");
     }
 
     void init();
