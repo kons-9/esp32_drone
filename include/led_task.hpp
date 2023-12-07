@@ -1,6 +1,7 @@
 #pragma once
 
 #include <driver/gpio.h>
+#include <freertos/FreeRTOS.h>
 
 typedef enum
 {
@@ -25,6 +26,7 @@ private:
     void inline fast_exec();
     void inline slow_exec();
     gpio_num_t led_pin;
+    led_task_t led_task_type;
 };
 
 void led_task(void *arg);

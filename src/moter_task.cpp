@@ -1,17 +1,23 @@
 #include "moter_task.hpp"
 #include "util.hpp"
+#include <freertos/queue.h>
 
-// TODO: changed by communication task
-// mabye use mutex? or channel?
-speed_t g_speed = 0;
+static const char *TAG = "moter_driver_t";
+
+#define MOTER_QUEUE_SIZE 10
+QueueHandle_t moter_queue;
 
 void moter_task(void *arg)
 {
     moter_driver_t *driver = (moter_driver_t *)arg;
-    driver->init();
+    speed_t speed = 0;
     while (true)
     {
-        driver->exec(g_speed);
+        if (xQueueReceive(moter_queue, &speed, 10) == pdTRUE)
+        {
+            ESP_LOGI(TAG, "speed: %d", speed);
+            driver->exec(speed);
+        }
     }
 }
 
