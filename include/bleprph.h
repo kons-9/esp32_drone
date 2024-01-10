@@ -33,14 +33,23 @@ struct ble_gatt_register_ctxt;
 
 /** GATT server. */
 #define GATT_SVR_SVC_ALERT_UUID 0x1811
-#define GATT_SVR_CHR_SUP_NEW_ALERT_CAT_UUID 0x2A47
-#define GATT_SVR_CHR_NEW_ALERT 0x2A46
-#define GATT_SVR_CHR_SUP_UNR_ALERT_CAT_UUID 0x2A48
-#define GATT_SVR_CHR_UNR_ALERT_STAT_UUID 0x2A45
-#define GATT_SVR_CHR_ALERT_NOT_CTRL_PT 0x2A44
+// #define GATT_SVR_CHR_SUP_NEW_ALERT_CAT_UUID 0x2A47
+// #define GATT_SVR_CHR_NEW_ALERT 0x2A46
+// #define GATT_SVR_CHR_SUP_UNR_ALERT_CAT_UUID 0x2A48
+// #define GATT_SVR_CHR_UNR_ALERT_STAT_UUID 0x2A45
+// #define GATT_SVR_CHR_ALERT_NOT_CTRL_PT 0x2A44
 
 void gatt_svr_register_cb(struct ble_gatt_register_ctxt *ctxt, void *arg);
 int gatt_svr_init(void);
+
+const ble_uuid128_t gatt_svr_svc_uuid
+    = BLE_UUID128_INIT(0x2d, 0x71, 0xa2, 0x59, 0xb4, 0x58, 0xc8, 0x12, 0x99, 0x99, 0x43, 0x95, 0x12, 0x2f, 0x46, 0x59);
+
+const ble_uuid128_t gatt_speed_chr_uuid
+    = BLE_UUID128_INIT(0x11, 0x00, 0x00, 0x00, 0x11, 0x11, 0x11, 0x11, 0x22, 0x22, 0x22, 0x22, 0x33, 0x33, 0x33, 0x33);
+const ble_uuid128_t gatt_led_chr_uuid
+    = BLE_UUID128_INIT(0x22, 0x00, 0x00, 0x00, 0x11, 0x11, 0x11, 0x11, 0x22, 0x22, 0x22, 0x22, 0x33, 0x33, 0x33, 0x33);
+
 
 #ifdef __cplusplus
 }

@@ -25,9 +25,9 @@ void communication_task(void *arg) {
     led_task_t task_type = FAST;
     while (true) {
         vTaskMilliSecondDelay(10000);
-        ESP_LOGI(tag, "Changing task type");
-        task_type = (task_type == FAST) ? SLOW : FAST;
-        change_led_type(task_type);
+        // ESP_LOGI(tag, "Changing task type");
+        // task_type = (task_type == FAST) ? SLOW : FAST;
+        // change_led_type(task_type);
     }
 }
 
@@ -65,11 +65,11 @@ static void bleprph_advertise(void) {
     fields.name_len = strlen(name);
     fields.name_is_complete = 1;
 
-    ble_uuid16_t* tuuid = (ble_uuid16_t *)malloc(sizeof(ble_uuid16_t));
-    *tuuid = BLE_UUID16_INIT(GATT_SVR_SVC_ALERT_UUID);
-    fields.uuids16 = tuuid;
-    fields.num_uuids16 = 1;
-    fields.uuids16_is_complete = 1;
+    // ble_uuid16_t* tuuid = (ble_uuid16_t *)malloc(sizeof(ble_uuid16_t));
+    // *tuuid = BLE_UUID16_INIT(GATT_SVR_SVC_ALERT_UUID);
+    // fields.uuids16 = tuuid;
+    // fields.num_uuids16 = 1;
+    // fields.uuids16_is_complete = 1;
 
     rc = ble_gap_adv_set_fields(&fields);
     if (rc != 0) {
@@ -185,9 +185,7 @@ void print_addr(uint8_t *addr) {
     }
 }
 
-static void
-bleprph_on_sync(void)
-{
+static void bleprph_on_sync(void) {
     int rc;
 
 #if CONFIG_EXAMPLE_RANDOM_ADDR
@@ -221,8 +219,7 @@ bleprph_on_sync(void)
     bleprph_advertise();
 }
 
-void bleprph_host_task(void *param)
-{
+void bleprph_host_task(void *param) {
     ESP_LOGI(tag, "BLE Host Task Started");
     /* This function will return only when nimble_port_stop() is executed */
     nimble_port_run();

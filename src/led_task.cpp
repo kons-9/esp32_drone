@@ -1,7 +1,7 @@
 #include "util.hpp"
 #include "led_task.hpp"
 
-static const char *TAG = "led_task";
+static const char *TAG ="led_task";
 QueueHandle_t g_led_queue = NULL;
 
 void change_led_type(const led_task_t task_type) {
@@ -15,6 +15,14 @@ void change_led_type(const led_task_t task_type) {
         myexit(1);
     }
 }
+extern "C" void change_led_type_by_uint8(const uint8_t task_type) {
+    if (task_type > 1) {
+        ESP_LOGE(TAG, "Unknown task type");
+    } else{
+        change_led_type((led_task_t)task_type);
+    }
+}
+
 
 void led_task(void *arg) {
     led_task_manager_t *manager = (led_task_manager_t *)arg;
