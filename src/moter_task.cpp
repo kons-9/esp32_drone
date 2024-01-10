@@ -26,13 +26,13 @@ void moter_driver_t::servo_cfg_init() {
 }
 
 void moter_driver_t::init() {
+
     ESP_LOGI(TAG, "Initializing Moter Task Manager");
     g_moter_queue = xQueueCreate(MOTER_QUEUE_SIZE, sizeof(speed_t));
     if (g_moter_queue == NULL) {
         ESP_LOGE(TAG, "Failed to create moter queue");
         exit(1);
     }
-
     servo_cfg_init();
 
     // init servo driver

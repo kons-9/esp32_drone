@@ -4,9 +4,8 @@
 
 void uart_event_task(void *args);
 
-class uart_driver_t
-{
-public:
+class uart_driver_t {
+  public:
     uart_driver_t(uart_port_t uart_num);
 
     void init();
@@ -16,7 +15,7 @@ public:
     uart_port_t uart_num;
     const int BUF_SIZE = 1024;
 
-private:
+  private:
     uart_config_t uart_config;
     TaskHandle_t uart_task_handle;
 };
