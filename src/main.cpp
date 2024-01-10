@@ -14,15 +14,12 @@
 #define MOTER_GPIO GPIO_NUM_4
 
 void init(moter_driver_t &moter_driver, led_task_manager_t &led_manager) {
-    // Read UART
-    uint8_t data[128];
+
     while (1) {
-        // int len = uart_read_bytes(UART_NUM_1, data, sizeof(data), pdMS_TO_TICKS(10000));
-        //
         printf("Waiting for second...\n");
         vTaskMilliSecondDelay(1000);
 
-        // communication_init();
+        communication_init();
         led_manager.init();
         moter_driver.init();
         return;
