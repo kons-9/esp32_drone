@@ -5,33 +5,27 @@ static const char *TAG = "moter_task";
 
 QueueHandle_t g_moter_queue;
 
-void moter_task(void *arg)
-{
+void moter_task(void *arg) {
     moter_driver_t *driver = (moter_driver_t *)arg;
     speed_t speed = 0;
 
-    while (true)
-    {
-        if (xQueueReceive(g_moter_queue, &speed, 10) == pdTRUE)
-        {
+    while (true) {
+        if (xQueueReceive(g_moter_queue, &speed, 10) == pdTRUE) {
             ESP_LOGI(TAG, "speed: %d", (uint8_t)speed);
             driver->exec(speed);
         }
     }
 }
 
-void moter_driver_t::send_pwm_signal(speed_t speed)
-{
+void moter_driver_t::send_pwm_signal(speed_t speed) {
     // TODO
 }
 
-void moter_driver_t::servo_cfg_init()
-{
+void moter_driver_t::servo_cfg_init() {
     // TODO
 }
 
-void moter_driver_t::init()
-{
+void moter_driver_t::init() {
     servo_cfg_init();
 
     // init servo driver
@@ -42,16 +36,12 @@ void moter_driver_t::init()
     vTaskMilliSecondDelay(1000);
 }
 
-void moter_driver_t::exec(speed_t speed)
-{
+void moter_driver_t::exec(speed_t speed) {
     // TODO: send pwm signal
-    if (speed > MOTER_MAX_SPEED)
-    {
+    if (speed > MOTER_MAX_SPEED) {
         speed = MOTER_MAX_SPEED;
         ESP_LOGW(TAG, "speed is over MOTER_MAX_SPEED");
-    }
-    else if (speed < MOTER_MIN_SPEED)
-    {
+    } else if (speed < MOTER_MIN_SPEED) {
         speed = MOTER_MIN_SPEED;
         ESP_LOGW(TAG, "speed is under MOTER_MIN_SPEED");
     }
