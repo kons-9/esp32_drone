@@ -1,6 +1,8 @@
 #include "moter_task.hpp"
 #include "util.hpp"
 
+#include "ESP32_Servo.h"
+
 static const char *TAG = "moter_task";
 
 QueueHandle_t g_moter_queue;

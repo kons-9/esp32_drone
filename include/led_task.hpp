@@ -3,13 +3,16 @@
 #include "util.hpp"
 #include <driver/gpio.h>
 #include <freertos/FreeRTOS.h>
+#include "Adafruit_NeoPixel.h"
 
 #define LED_QUEUE_SIZE 10
+#define NUMPIXELS 60
 
 // from serial or communication(todo) or sensor?
 typedef enum {
     FAST,
     SLOW,
+    RAINBOW,
 } led_task_t;
 
 class led_task_manager_t {
@@ -27,6 +30,11 @@ class led_task_manager_t {
   private:
     void inline fast_exec();
     void inline slow_exec();
+    void inline rainbow_exec();
+
+    void inline rainbow_cycle(uint8_t wait);
+    uint32_t inline wheel(byte wheel_pos);
+    Adafruit_NeoPixel strip;
     gpio_num_t led_pin;
     led_task_t led_task_type;
 };

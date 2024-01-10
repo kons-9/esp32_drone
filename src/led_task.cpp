@@ -1,7 +1,6 @@
-#include "util.hpp"
 #include "led_task.hpp"
 
-static const char *TAG ="led_task";
+static const char *TAG = "led_task";
 QueueHandle_t g_led_queue = NULL;
 
 void change_led_type(const led_task_t task_type) {
@@ -18,7 +17,7 @@ void change_led_type(const led_task_t task_type) {
 extern "C" void change_led_type_by_uint8(const uint8_t task_type) {
     if (task_type > 1) {
         ESP_LOGE(TAG, "Unknown task type");
-    } else{
+    } else {
         change_led_type((led_task_t)task_type);
     }
 }
@@ -56,6 +55,10 @@ void led_task_manager_t::run() {
             ESP_LOGI(TAG, "SLOW");
             slow_exec();
             break;
+        case RAINBOW:
+            ESP_LOGI(TAG, "RAINBOW");
+            rainbow_exec();
+            break;
         default: ESP_LOGE(TAG, "Unknown task type"); break;
         }
     }
@@ -71,6 +74,9 @@ void led_task_manager_t::init() {
         exit(1);
     }
     led_task_type = FAST;
+    strip = Adafruit_NeoPixel(NUMPIXELS, led_pin, NEO_GRB + NEO_KHZ800);
+    strip.begin();
+    strip.show();  // Initialize all pixels to 'off'
 }
 
 void inline led_task_manager_t::fast_exec() {
@@ -84,4 +90,32 @@ void inline led_task_manager_t::slow_exec() {
     vTaskMilliSecondDelay(2000);
     gpio_set_level(led_pin, 0);
     vTaskMilliSecondDelay(2000);
+}
+
+void inline led_task_manager_t::rainbow_exec() {
+    rainbow_cycle(20);
+}
+
+uint32_t inline led_task_manager_t::wheel(byte wheelPos) {
+    wheelPos = 255 - wheelPos;
+    if (wheelPos < 85) {
+        return strip.Color(255 - wheelPos * 3, 0, wheelPos * 3);
+    }
+    if (wheelPos < 170) {
+        wheelPos -= 85;
+        return strip.Color(0, wheelPos * 3, 255 - wheelPos * 3);
+    }
+    wheelPos -= 170;
+    return strip.Color(wheelPos * 3, 255 - wheelPos * 3, 0);
+}
+
+void inline led_task_manager_t::rainbow_cycle(uint8_t wait) {
+    uint16_t i, j;
+    for (j = 0; j < 256 * 5; j++) {
+        for (i = 0; i < strip.numPixels(); i++) {
+            strip.setPixelColor(i, wheel(((i * 256 / strip.numPixels()) + j) & 255));
+        }
+        strip.show();
+        delay(wait);
+    }
 }
