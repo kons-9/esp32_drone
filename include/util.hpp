@@ -10,5 +10,6 @@
 #include "esp_log.h"
 
 void vTaskMilliSecondDelay(uint32_t ms);
+void myexit(int code);
 
 #endif

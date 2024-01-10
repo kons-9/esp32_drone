@@ -7,17 +7,14 @@
 extern QueueHandle_t g_led_queue;
 
 // from serial or communication(todo) or sensor?
-typedef enum
-{
+typedef enum {
     FAST,
     SLOW,
 } led_task_t;
 
-class led_task_manager_t
-{
-public:
-    led_task_manager_t(gpio_num_t pin)
-    {
+class led_task_manager_t {
+  public:
+    led_task_manager_t(gpio_num_t pin) {
         gpio_pad_select_gpio(pin);
         gpio_set_direction(pin, GPIO_MODE_OUTPUT);
         this->led_pin = pin;
@@ -25,8 +22,9 @@ public:
 
     void run();
     void init();
+    void write(led_task_t task_type);
 
-private:
+  private:
     void inline fast_exec();
     void inline slow_exec();
     gpio_num_t led_pin;
@@ -34,3 +32,4 @@ private:
 };
 
 void led_task(void *arg);
+void change_led_type(led_task_t task_type);
