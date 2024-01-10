@@ -2,8 +2,7 @@
 #include "led_task.hpp"
 #include "moter_task.hpp"
 
-struct parser_t
-{
+struct parser_t {
     command_t command;
     // for led
     led_task_t led_task;
@@ -11,8 +10,7 @@ struct parser_t
     speed_t speed;
 };
 
-enum command_t
-{
+enum command_t {
     CMD_ERROR = -1,
 
     // init
