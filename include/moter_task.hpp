@@ -23,7 +23,7 @@ class moter_driver_t {
   private:
     void servo_cfg_init();
     void send_pwm_signal(speed_t speed);
-    const speed_t MOTER_MAX_SPEED = 255;
-    const speed_t MOTER_MIN_SPEED = 0;
+    const speed_t MOTER_MAX_SPEED = 500;
+    const speed_t MOTER_MIN_SPEED = 100;
     gpio_num_t out;
 };

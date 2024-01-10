@@ -1,10 +1,10 @@
 #pragma once
 
+#include "util.hpp"
 #include <driver/gpio.h>
 #include <freertos/FreeRTOS.h>
 
 #define LED_QUEUE_SIZE 10
-extern QueueHandle_t g_led_queue;
 
 // from serial or communication(todo) or sensor?
 typedef enum {
@@ -22,6 +22,7 @@ class led_task_manager_t {
 
     void run();
     void init();
+    void write(led_task_t task_type);
 
   private:
     void inline fast_exec();
@@ -31,3 +32,6 @@ class led_task_manager_t {
 };
 
 void led_task(void *arg);
+void change_led_type(led_task_t task_type);
+
+extern "C" void change_led_type_by_uint8(const uint8_t task_type);
