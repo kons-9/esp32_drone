@@ -11,24 +11,21 @@
 #define LED_GPIO GPIO_NUM_2
 #define MOTER_GPIO GPIO_NUM_4
 
-void init(moter_driver_t &moter_driver, led_task_manager_t &led_manager)
-{
+void init(moter_driver_t &moter_driver, led_task_manager_t &led_manager) {
     // Read UART
     uint8_t data[128];
-    while (1)
-    {
+    while (1) {
         int len = uart_read_bytes(UART_NUM_1, data, sizeof(data), pdMS_TO_TICKS(10000));
-        if (len > 0)
-        {
+        if (len > 0) {
             led_manager.init();
             moter_driver.init();
+            communication_init();
             return;
         }
     }
 }
 
-extern "C" void app_main()
-{
+extern "C" void app_main() {
 
     led_task_manager_t led_manager(LED_GPIO);
     moter_driver_t moter_driver(MOTER_GPIO);
