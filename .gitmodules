@@ -1,0 +1,6 @@
+[submodule "lib/Adafruit_NeoPixel"]
+	path = lib/Adafruit_NeoPixel
+	url = https://github.com/adafruit/Adafruit_NeoPixel
+[submodule "lib/ESP32Servo"]
+	path = lib/ESP32Servo
+	url = https://github.com/madhephaestus/ESP32Servo
