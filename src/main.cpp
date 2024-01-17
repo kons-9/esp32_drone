@@ -24,6 +24,7 @@ void init(moter_driver_t &moter_driver, led_task_manager_t &led_manager) {
         // communication_init();
         led_manager.init();
         moter_driver.init();
+        webserver_init();
         
         return;
     }
@@ -42,6 +43,7 @@ void setup() {
     xTaskCreate(moter_task, "moter_task", 2048, &moter_driver, MOTER_TASK_PRIORITY, NULL);
     // xTaskCreate(communication_task, "ble_task", 2048, NULL, COMMUNICATION_TASK_PRIORITY, NULL);
     xTaskCreate(led_task, "led_blink", 2048, &led_manager, LED_TASK_PRIORITY, NULL);
+    xTaskCreate(webserver_run, "webserver", 2048, NULL, LED_TASK_PRIORITY, NULL);
 }
 
 void loop() {
