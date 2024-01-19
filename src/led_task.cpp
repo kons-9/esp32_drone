@@ -1,7 +1,10 @@
 #include "led_task.hpp"
 
 static const char *TAG = "led_task";
-QueueHandle_t g_led_queue = NULL;
+static constexpr UBaseType_t LED_QUEUE_SIZE = 10;
+
+static QueueHandle_t g_led_queue = NULL;
+static led_task_t s_led_task_type;
 
 void change_led_type(const led_task_t task_type) {
     ESP_LOGI(TAG, "Changing led task type");
@@ -9,113 +12,132 @@ void change_led_type(const led_task_t task_type) {
         ESP_LOGE(TAG, "g_led_queue is NULL");
         myexit(1);
     }
-    if (xQueueSendToBack(g_led_queue, (void *)&task_type, 10) != pdTRUE) {
-        ESP_LOGE(TAG, "Failed to send led task");
-        myexit(1);
+    if (xQueueSendToBack(g_led_queue, &task_type, 10) != pdTRUE) {
+        if (xQueueSendToBack(g_led_queue, &task_type, 10) != pdTRUE) {
+            ESP_LOGE(TAG, "Failed to send led task");
+            myexit(1);
+        }
+        s_led_task_type = task_type;
     }
-}
-extern "C" void change_led_type_by_uint8(const uint8_t task_type) {
-    if (task_type > 1) {
-        ESP_LOGE(TAG, "Unknown task type");
-    } else {
-        change_led_type((led_task_t)task_type);
+
+    const char *led_task_to_str(const led_task_t task_type) {
+        switch (task_type) {
+        case FAST: return "FAST";
+        case SLOW: return "SLOW";
+        case RAINBOW: return "RAINBOW";
+        default: myexit(1);
+        }
+
+        return NULL;
     }
-}
 
+    led_task_t get_led_task_type() {
+        return s_led_task_type;
+    }
 
-void led_task(void *arg) {
-    led_task_manager_t *manager = (led_task_manager_t *)arg;
-    manager->run();
-}
+    void led_task(void *arg) {
+        led_task_manager_t *manager = (led_task_manager_t *)arg;
+        manager->run();
+    }
 
-void led_receive_task(void *arg) {
-    led_task_manager_t *manager = (led_task_manager_t *)arg;
+    void led_receive_task(void *arg) {
+        led_task_manager_t *manager = (led_task_manager_t *)arg;
+        if (g_led_queue == NULL) {
+            ESP_LOGE(TAG, "g_led_queue is NULL");
+            myexit(1);
+        }
 
-    while (true) {
-        led_task_t cur_task_type;
-        if (xQueueReceive(g_led_queue, &cur_task_type, 1000) == pdTRUE) {
-            manager->write(cur_task_type);
+        change_led_type(RAINBOW);
+
+        while ((volatile bool)(true)) {
+            if (xQueueReceive(g_led_queue, &s_led_task_type, 1000) == pdTRUE) {
+                manager->write(s_led_task_type);
+            }
         }
     }
-}
 
-void led_task_manager_t::write(led_task_t task_type) {
-    led_task_type = task_type;
-}
-
-void led_task_manager_t::run() {
-    xTaskCreate(led_receive_task, "led_receive_task", 2048, this, 5, NULL);
-    while (true) {
-        switch (led_task_type) {
-        case FAST:
-            ESP_LOGI(TAG, "FAST");
-            fast_exec();
-            break;
-        case SLOW:
-            ESP_LOGI(TAG, "SLOW");
-            slow_exec();
-            break;
-        case RAINBOW:
-            ESP_LOGI(TAG, "RAINBOW");
-            rainbow_exec();
-            break;
-        default: ESP_LOGE(TAG, "Unknown task type"); break;
+    void led_task_manager_t::write(const led_task_t task_type) {
+        void led_task_manager_t::write(const led_task_t task_type) {
+            led_task_type = task_type;
         }
-    }
-}
 
+        void led_task_manager_t::run() {
+            while ((volatile bool)(true)) {
+                while ((volatile bool)(true)) {
+                    switch (led_task_type) {
+                    case FAST:
+                        ESP_LOGI(TAG, "FAST");
+                        fast_exec();
+                        break;
+                    case SLOW:
+                        ESP_LOGI(TAG, "SLOW");
+                        slow_exec();
+                        break;
+                    case RAINBOW:
+                        // this means rainbow_cnt == 0 mod 256
+                        if (rainbow_cnt == 0) {
+                            ESP_LOGI(TAG, "RAINBOW");
+                        }
+                        rainbow_exec();
+                        break;
+                    default:
+                        ESP_LOGE(TAG, "Unknown task type");
+                        ESP_LOGI(TAG, "reset task type to FAST");
+                        change_led_type(FAST);
+                        break;
+                    }
+                }
+            }
 
-// コンストラクタ内部でやってもいいかも
-void led_task_manager_t::init() {
-    ESP_LOGI(TAG, "Initializing LED Task Manager");
-    g_led_queue = xQueueCreate(LED_QUEUE_SIZE, sizeof(led_task_t));
-    if (g_led_queue == NULL) {
-        ESP_LOGE(TAG, "Failed to create queue");
-        exit(1);
-    }
-    led_task_type = FAST;
-    strip = Adafruit_NeoPixel(NUMPIXELS, led_pin, NEO_GRB + NEO_KHZ800);
-    strip.begin();
-    strip.show();  // Initialize all pixels to 'off'
-}
+            void led_task_manager_t::init() {
+                ESP_LOGI(TAG, "Initializing LED Task Manager");
+                g_led_queue = xQueueCreate(LED_QUEUE_SIZE, sizeof(led_task_t));
+                if (g_led_queue == NULL) {
+                    ESP_LOGE(TAG, "Failed to create queue");
+                    myexit(1);
+                }
+                strip.begin();
+                strip.show();  // Initialize all pixels to 'off'
 
-void inline led_task_manager_t::fast_exec() {
-    gpio_set_level(led_pin, 1);
-    vTaskMilliSecondDelay(1000);
-    gpio_set_level(led_pin, 0);
-    vTaskMilliSecondDelay(1000);
-}
-void inline led_task_manager_t::slow_exec() {
-    gpio_set_level(led_pin, 1);
-    vTaskMilliSecondDelay(2000);
-    gpio_set_level(led_pin, 0);
-    vTaskMilliSecondDelay(2000);
-}
+                ESP_LOGI(TAG, "Initializing LED Task Manager done");
+            }
 
-void inline led_task_manager_t::rainbow_exec() {
-    rainbow_cycle(20);
-}
+            void inline led_task_manager_t::fast_exec() {
+                gpio_set_level(debug_led_pin, debug_led_state);
+                vTaskMilliSecondDelay(1000);
+            }
+            void inline led_task_manager_t::slow_exec() {
+                gpio_set_level(debug_led_pin, debug_led_state);
+                vTaskMilliSecondDelay(2000);
+            }
 
-uint32_t inline led_task_manager_t::wheel(byte wheelPos) {
-    wheelPos = 255 - wheelPos;
-    if (wheelPos < 85) {
-        return strip.Color(255 - wheelPos * 3, 0, wheelPos * 3);
-    }
-    if (wheelPos < 170) {
-        wheelPos -= 85;
-        return strip.Color(0, wheelPos * 3, 255 - wheelPos * 3);
-    }
-    wheelPos -= 170;
-    return strip.Color(wheelPos * 3, 255 - wheelPos * 3, 0);
-}
+            void inline led_task_manager_t::rainbow_exec() {
+                rainbow_cycle(rainbow_cnt);
+                vTaskMilliSecondDelay(RAINBOW_DELAY);
+                rainbow_cnt++;
+            }
 
-void inline led_task_manager_t::rainbow_cycle(uint8_t wait) {
-    uint16_t i, j;
-    for (j = 0; j < 256 * 5; j++) {
-        for (i = 0; i < strip.numPixels(); i++) {
-            strip.setPixelColor(i, wheel(((i * 256 / strip.numPixels()) + j) & 255));
-        }
-        strip.show();
-        delay(wait);
-    }
-}
+            uint32_t inline led_task_manager_t::wheel(uint8_t wheelPos) {
+                wheelPos = 255 - wheelPos;
+                uint8_t three_times_pos = wheelPos * 3;
+                if (wheelPos < 85) {
+                    return strip.Color(255 - three_times_pos, 0, three_times_pos);
+                }
+                wheelPos -= 85;
+                three_times_pos = wheelPos * 3;
+                if (wheelPos < 85) {
+                    return strip.Color(0, three_times_pos, 255 - three_times_pos);
+                }
+                wheelPos -= 85;
+                three_times_pos = wheelPos * 3;
+                return strip.Color(three_times_pos, 255 - three_times_pos, 0);
+            }
+
+            void inline led_task_manager_t::rainbow_cycle(uint16_t rainbow_cnt) {
+                constexpr uint8_t div_256 = 256 / NUMPIXELS;
+
+                for (uint16_t i = 0, j = 0; i < strip.numPixels(); i++, j += div_256) {
+                    strip.setPixelColor(i, wheel(((j + rainbow_cnt) & 255)));
+                }
+                strip.show();
+            }

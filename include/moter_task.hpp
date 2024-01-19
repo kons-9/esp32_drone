@@ -5,35 +5,40 @@
 using speed_t = uint32_t;
 using signal_t = uint32_t;
 
-#define MOTER_QUEUE_SIZE 10
-
 void change_speed(const speed_t speed);
+speed_t get_speed(void);
 void moter_task(void *arg);
 
 class moter_driver_t {
+  private:
+    inline void servo_cfg_init(void) {
+        servo.setPeriodHertz(50);
+        servo.attach(out, MOTER_MIN_SIGNAL, MOTER_MAX_SIGNAL);
+    }
+
   public:
-    moter_driver_t(gpio_num_t out) {
-        this->out = out;
-        gpio_pad_select_gpio(this->out);
-        gpio_set_direction(this->out, GPIO_MODE_OUTPUT);
-        ESP_LOGI("moter_task_h", "moter_driver_t constructor called");
+    moter_driver_t(gpio_num_t out)
+        : out(out)
+        , servo(Servo()) {
+        gpio_pad_select_gpio(out);
+        gpio_set_direction(out, GPIO_MODE_OUTPUT);
+
+        servo_cfg_init();
     }
     ~moter_driver_t() {
-        ESP_LOGI("moter_task_h", "moter_driver_t destructor called");
         servo.detach();
     }
 
-    void init();
+    void init(void);
     void exec(speed_t speed);
 
   private:
-    inline void servo_cfg_init();
     inline void send_pwm_signal(const speed_t speed);
     inline signal_t speed_to_signal(const speed_t speed);
     Servo servo;
-    const signal_t MOTER_MAX_SIGNAL = 1000;
-    const signal_t MOTER_MIN_SIGNAL = 500;
-    const speed_t MOTER_MAX_SPEED = 100;
-    const speed_t MOTER_MIN_SPEED = 0;
-    gpio_num_t out;
+    static constexpr signal_t MOTER_MAX_SIGNAL = 1000;
+    static constexpr signal_t MOTER_MIN_SIGNAL = 500;
+    static constexpr speed_t MOTER_MAX_SPEED = 100;
+    static constexpr speed_t MOTER_MIN_SPEED = 0;
+    const gpio_num_t out;
 };

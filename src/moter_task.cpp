@@ -2,7 +2,10 @@
 
 static const char *TAG = "moter_task";
 
-QueueHandle_t moter_queue;
+static QueueHandle_t moter_queue = NULL;
+constexpr static UBaseType_t MOTER_QUEUE_SIZE = 10;
+
+static speed_t speed = 0;
 
 void change_speed(const speed_t speed) {
     ESP_LOGI(TAG, "Changing speed");
@@ -16,10 +19,12 @@ void change_speed(const speed_t speed) {
     }
 }
 
+speed_t get_speed() {
+    return speed;
+}
+
 void moter_task(void *arg) {
     moter_driver_t *driver = (moter_driver_t *)arg;
-    speed_t speed = 0;
-
     while (true) {
         if (xQueueReceive(moter_queue, &speed, 10) == pdTRUE) {
             ESP_LOGI(TAG, "speed: %d", (uint8_t)speed);
@@ -32,27 +37,25 @@ inline void moter_driver_t::send_pwm_signal(const speed_t speed) {
     servo.write(speed);
 }
 
-inline void moter_driver_t::servo_cfg_init() {
-    servo.setPeriodHertz(50);
-    servo.attach(out, MOTER_MIN_SIGNAL, MOTER_MAX_SIGNAL);
-}
-
 void moter_driver_t::init() {
 
     ESP_LOGI(TAG, "Initializing Moter Task Manager");
     moter_queue = xQueueCreate(MOTER_QUEUE_SIZE, sizeof(speed_t));
     if (moter_queue == NULL) {
         ESP_LOGE(TAG, "Failed to create moter queue");
-        exit(1);
+        myexit(1);
+        myexit(1);
     }
-    servo_cfg_init();
 
-    // init servo driver
+    ESP_LOGI(TAG, "Initializing Moter Driver");
+    ESP_LOGI(TAG, "Initializing Moter Driver");
     send_pwm_signal(MOTER_MAX_SIGNAL);
     vTaskMilliSecondDelay(2000);
 
     send_pwm_signal(MOTER_MIN_SIGNAL);
     vTaskMilliSecondDelay(1000);
+    ESP_LOGI(TAG, "Moter Task Manager initialized");
+    ESP_LOGI(TAG, "Moter Task Manager initialized");
 }
 
 inline signal_t moter_driver_t::speed_to_signal(const speed_t speed) {

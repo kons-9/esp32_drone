@@ -5,3 +5,8 @@
 .vscode/ipch
 
 sdkconfig.*.old
+
+tmp
+src/autogen.cpp
+
+.cache
