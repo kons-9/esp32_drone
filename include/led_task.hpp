@@ -34,7 +34,6 @@ class led_task_manager_t {
     void run();
     void init();
     void write(const led_task_t task_type);
-    void write(const led_task_t task_type);
 
   private:
     void inline fast_exec();

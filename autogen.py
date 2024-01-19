@@ -1,5 +1,6 @@
 import sys
 import os
+import getpass
 
 yes = ['y', 'Y', 'yes', 'Yes', 'YES']
 no = ['n', 'N', 'no', 'No', 'NO']
@@ -14,7 +15,25 @@ def get_pass_ssid():
         return password, ssid
     # ask password and ssid
     ssid = input('ssid: ')
-    password = input('password: ')
+    password = getpass.getpass('password: ')
+
+    # hash password by wpa_passphrase
+    # $ wpa_passphrase hoge fuga
+    # if password is 'hoge' and ssid is 'fuga', output is below
+    # network={
+    #     ssid="fuga"
+    #     #psk="hoge"
+    #     psk=1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcd
+    # }
+    password = os.popen('wpa_passphrase ' + ssid + ' ' + password).readlines()
+    if len(password) < 2:
+        raise Exception('password is too short')
+    password = map(lambda x: x.strip(), password)
+    password = filter(lambda x: x.startswith('psk='), password)
+    password = list(password)[0].split('=')[1]
+
+    print('ssid: ' + ssid)
+    print('hashed password: ' + password)
     
     # store to .cache/confidential.txt
     if not os.path.exists('.cache'):
