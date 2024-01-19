@@ -48,13 +48,11 @@ void moter_driver_t::init() {
     }
 
     ESP_LOGI(TAG, "Initializing Moter Driver");
-    ESP_LOGI(TAG, "Initializing Moter Driver");
     send_pwm_signal(MOTER_MAX_SIGNAL);
     vTaskMilliSecondDelay(2000);
 
     send_pwm_signal(MOTER_MIN_SIGNAL);
     vTaskMilliSecondDelay(1000);
-    ESP_LOGI(TAG, "Moter Task Manager initialized");
     ESP_LOGI(TAG, "Moter Task Manager initialized");
 }
 

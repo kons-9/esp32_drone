@@ -37,5 +37,4 @@ void setup() {
 
 void loop() {
     vTaskMilliSecondDelay(10000);
-    vTaskMilliSecondDelay(10000);
 }
