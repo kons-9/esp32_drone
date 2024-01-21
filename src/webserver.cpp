@@ -20,7 +20,7 @@ void webserver_init(void) {
     });
 
     // プラスボタンにアクセスされた時のレスポンス
-    server.on("/PLUS", HTTP_GET, [](AsyncWebServerRequest *request) {
+    server.on("/plus", HTTP_GET, [](AsyncWebServerRequest *request) {
         speed_t speed = get_speed();
         speed += 10;
         request->redirect("/");
@@ -28,7 +28,7 @@ void webserver_init(void) {
         ESP_LOGI("webserver", "PLUSBUTTON is Pressed");
     });
     // マイナスボタンにアクセスされた時のレスポンス
-    server.on("/MINUS", HTTP_GET, [](AsyncWebServerRequest *request) {
+    server.on("/minus", HTTP_GET, [](AsyncWebServerRequest *request) {
         speed_t speed = get_speed();
         if (speed < 10) {
             speed = 0;
@@ -40,7 +40,7 @@ void webserver_init(void) {
         ESP_LOGI("webserver", "MINUSBUTTON is Pressed");
     });
 
-    server.on("/SLOW", HTTP_GET, [](AsyncWebServerRequest *request) {
+    server.on("/slow", HTTP_GET, [](AsyncWebServerRequest *request) {
         const led_task_t led = led_task_t::SLOW;
         change_led_type(led);
 
@@ -48,7 +48,7 @@ void webserver_init(void) {
         ESP_LOGI("webserver", "SLOW is Pressed");
     });
 
-    server.on("/FAST", HTTP_GET, [](AsyncWebServerRequest *request) {
+    server.on("/fast", HTTP_GET, [](AsyncWebServerRequest *request) {
         const led_task_t led = led_task_t::FAST;
         change_led_type(led);
 
@@ -56,12 +56,26 @@ void webserver_init(void) {
         ESP_LOGI("webserver", "FAST is Pressed");
     });
 
-    server.on("/RAINBOW", HTTP_GET, [](AsyncWebServerRequest *request) {
+    server.on("/rainbow", HTTP_GET, [](AsyncWebServerRequest *request) {
         led_task_t led = led_task_t::RAINBOW;
         change_led_type(led);
 
         request->redirect("/");
         ESP_LOGI("webserver", "RAINBOW is Pressed");
+    });
+
+    // "/setSpeed" エンドポイントの処理
+    server.on("/changeSpeed", HTTP_GET, [](AsyncWebServerRequest *request) {
+        if (request->hasParam("speed")) {
+            // ここの処理は考える必要がある。現状-999から+999までの値が送られてくる...はず
+            speed_t speed = get_speed();
+            String speedParam = request->getParam("speed")->value();
+            int newSpeed = speedParam.toInt();
+            speed = newSpeed;
+            change_speed(speed);
+            Serial.println("Speed is set to: " + String(newSpeed));
+        }
+        request->redirect("/");
     });
 }
 
