@@ -56,6 +56,23 @@ def make_template(password, ssid):
     # read assets/index.html
     with open('assets/index.html', 'r') as f:
         index = f.read()
+        
+    # compress index.html
+    # remove \n and \t and \r and " " and \"(comment)
+    # // comment
+    index = index.replace('\t', '')
+    index = index.split('\n')
+    index = map(lambda x: x.strip(), index)
+    index = filter(lambda x: not x.startswith('//'), index)
+    index = map(lambda x: x.split('//')[0] if '//' in x else x, index)
+
+    index = ''.join(index)
+    #  <!-- comment -->
+    index = index.split('<!--')
+    index = map(lambda x: x.split('-->')[1] if '-->' in x else x, index)
+    index = ''.join(index)
+
+    
     template = template.replace('$HTML$', index)
 
     # overwrite src/autogen.cpp

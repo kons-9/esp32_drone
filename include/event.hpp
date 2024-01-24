@@ -9,5 +9,5 @@ enum class drone_event_bit_t : EventBits_t {
     START_TASK = 1 << 3,
 };
 
-// global event group
+// TODO: globalじゃなくてもいい
 extern EventGroupHandle_t drone_event_group;
