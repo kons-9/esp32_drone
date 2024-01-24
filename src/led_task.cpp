@@ -74,6 +74,14 @@ void led_task_manager_t::run() {
             }
             rainbow_exec();
             break;
+        case MAX_SPEED:
+            ESP_LOGI(TAG, "MAX_SPEED");
+            max_speed_exec();
+            break;
+        case MIN_SPEED:
+            ESP_LOGI(TAG, "MIN_SPEED");
+            min_speed_exec();
+            break;
         default:
             ESP_LOGE(TAG, "Unknown task type");
             ESP_LOGI(TAG, "reset task type to FAST");
@@ -105,6 +113,17 @@ void inline led_task_manager_t::rainbow_exec() {
     rainbow_cycle(rainbow_cnt);
     vTaskMilliSecondDelay(RAINBOW_DELAY);
     rainbow_cnt++;
+}
+void inline led_task_manager_t::max_speed_exec() {
+    strip.setPixelColor(0, strip.Color(255, 0, 0));
+    strip.show();
+    vTaskMilliSecondDelay(100);
+}
+
+void inline led_task_manager_t::min_speed_exec() {
+    strip.setPixelColor(0, strip.Color(0, 255, 0));
+    strip.show();
+    vTaskMilliSecondDelay(100);
 }
 
 uint32_t inline led_task_manager_t::wheel(uint8_t wheelPos) {

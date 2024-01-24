@@ -1,5 +1,6 @@
 #include "moter_task.hpp"
 #include "event.hpp"
+#include "led_task.hpp"
 
 static const char *TAG = "moter_task";
 
@@ -76,9 +77,11 @@ void moter_driver_t::exec(speed_t speed) {
     if (speed > MOTER_MAX_SPEED) {
         speed = MOTER_MAX_SPEED;
         ESP_LOGW(TAG, "speed is over MOTER_MAX_SPEED");
+        change_led_type(led_task_t::MAX_SPEED);
     } else if (speed < MOTER_MIN_SPEED) {
         speed = MOTER_MIN_SPEED;
         ESP_LOGW(TAG, "speed is under MOTER_MIN_SPEED");
+        change_led_type(led_task_t::MIN_SPEED);
     }
 
     send_pwm_signal(speed_to_signal(speed));

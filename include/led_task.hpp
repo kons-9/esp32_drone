@@ -10,6 +10,8 @@ typedef enum {
     FAST,
     SLOW,
     RAINBOW,
+    MAX_SPEED,
+    MIN_SPEED,
 } led_task_t;
 
 const char *led_task_to_str(led_task_t task_type);
@@ -39,6 +41,8 @@ class led_task_manager_t {
     void inline fast_exec();
     void inline slow_exec();
     void inline rainbow_exec();
+    void inline max_speed_exec();
+    void inline min_speed_exec();
 
     // for rainbow
     void inline rainbow_cycle(uint16_t rainbow_cnt);
