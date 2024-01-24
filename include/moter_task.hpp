@@ -12,8 +12,7 @@ void moter_task(void *arg);
 class moter_driver_t {
   private:
     inline void servo_cfg_init(void) {
-        servo.setPeriodHertz(50);
-        servo.attach(out, MOTER_MIN_SIGNAL, MOTER_MAX_SIGNAL);
+        servo.attach(out);
     }
 
   public:
