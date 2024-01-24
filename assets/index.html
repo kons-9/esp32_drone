@@ -33,6 +33,7 @@
     <h2>Current Status</h2>
     <h3>speed: %d</h3>
     <h3>led: %s</h3>
+    <p><button type="button" onclick="location.href='start'">START</button></p>
     <p><button type="button" onclick="location.href='plus'">+10</button><button type="button"
             onclick="location.href='minus'">-10</button></p>
     <p><button type="button" onclick="location.href='fast'">FAST</button><button type="button"
@@ -58,7 +59,7 @@
     </p>
 
     <!-- 以下、JSによる記述 -->
-    <script>function changeSpeed() { var speedValue = document.getElementById('speedInput').value; window.location.href = '/changeSpeed?speed=' + speedValue; }</script>
+    <script>function changeSpeed() { var speedValue = document.getElementById('speedInput').value; window.location.href = 'changeSpeed?speed=' + speedValue; }</script>
     <script> function setPlusSign(value) {
             var speedInput = document.getElementById('speedInput').value || 0;
             var originalSpeed = parseInt(speedInput);
@@ -66,7 +67,6 @@
                 var newValue = originalSpeed * -1;
                 document.getElementById('speedInput').value = newValue.toString();
             }
-
         } 
     </script>
     <script> function setMinusSign(value) {

@@ -1,23 +1,17 @@
 #include "led_task.hpp"
+#include "event.hpp"
 
 static const char *TAG = "led_task";
-static constexpr UBaseType_t LED_QUEUE_SIZE = 10;
 
-static QueueHandle_t g_led_queue = NULL;
 static led_task_t s_led_task_type;
 
 void change_led_type(const led_task_t task_type) {
     ESP_LOGI(TAG, "Changing led task type");
-    if (g_led_queue == NULL) {
-        ESP_LOGE(TAG, "g_led_queue is NULL");
+
+    s_led_task_type = task_type;
+    if (xEventGroupSetBits(drone_event_group, (EventBits_t)drone_event_bit_t::LED_TYPE_CHANGE) != pdPASS) {
+        ESP_LOGE(TAG, "Failed to send led task");
         myexit(1);
-    }
-    if (xQueueSendToBack(g_led_queue, &task_type, 10) != pdTRUE) {
-        if (xQueueSendToBack(g_led_queue, &task_type, 10) != pdTRUE) {
-            ESP_LOGE(TAG, "Failed to send led task");
-            myexit(1);
-        }
-        s_led_task_type = task_type;
     }
 }
 
@@ -44,15 +38,15 @@ void led_task(void *arg) {
 
 void led_receive_task(void *arg) {
     led_task_manager_t *manager = (led_task_manager_t *)arg;
-    if (g_led_queue == NULL) {
-        ESP_LOGE(TAG, "g_led_queue is NULL");
-        myexit(1);
-    }
 
     change_led_type(RAINBOW);
 
     while ((volatile bool)(true)) {
-        if (xQueueReceive(g_led_queue, &s_led_task_type, 1000) == pdTRUE) {
+        if (xEventGroupWaitBits(drone_event_group,
+                                (EventBits_t)drone_event_bit_t::LED_TYPE_CHANGE,
+                                pdTRUE,
+                                pdFALSE,
+                                portMAX_DELAY)) {
             manager->write(s_led_task_type);
         }
     }
@@ -91,11 +85,7 @@ void led_task_manager_t::run() {
 
 void led_task_manager_t::init() {
     ESP_LOGI(TAG, "Initializing LED Task Manager");
-    g_led_queue = xQueueCreate(LED_QUEUE_SIZE, sizeof(led_task_t));
-    if (g_led_queue == NULL) {
-        ESP_LOGE(TAG, "Failed to create queue");
-        myexit(1);
-    }
+
     strip.begin();
     strip.show();  // Initialize all pixels to 'off'
 

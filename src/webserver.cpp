@@ -2,10 +2,11 @@
 #include "moter_task.hpp"
 #include "led_task.hpp"
 #include "wifi.hpp"
+#include "event.hpp"
 
 static AsyncWebServer server(80);
 
-static const char *html = (char *)malloc(1024);
+static const char *html = (char *)malloc(6000);
 
 void webserver_init(void) {
     // GETリクエストに対するハンドラーを登録
@@ -77,13 +78,19 @@ void webserver_init(void) {
         }
         request->redirect("/");
     });
-}
 
-void webserver_run(void *args) {
+    server.on("/startTask", HTTP_GET, [](AsyncWebServerRequest *request) {
+        if (request->hasParam("speed")) {
+            ESP_LOGI("webserver", "start_task");
+            xEventGroupSetBits(drone_event_group, (EventBits_t)drone_event_bit_t::START_TASK);
+        }
+        request->redirect("/");
+    });
     server.begin();
     ESP_LOGI("webserver", "ESP32_WebServer start!");
-    while (true) {
-        display_wifi_info();
-        vTaskMilliSecondDelay(10000);
-    }
+}
+
+void webserver_reset(void) {
+    server.reset();
+    ESP_LOGI("webserver", "ESP32_WebServer reset!");
 }
