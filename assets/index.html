@@ -1,6 +1,7 @@
 <html>
 
 <head>
+    <meta charset="UTF-8">
     <title>ESP32_WebServer</title>
     <style type="text/css">
         body {
@@ -32,11 +33,77 @@
     <h2>Current Status</h2>
     <h3>speed: %d</h3>
     <h3>led: %s</h3>
-    <p><button type="button" onclick="location.href='PLUS'">+10</button><button type="button"
-            onclick="location.href='MINUS'">-10</button></p>
-    <p><button type="button" onclick="location.href='FAST'">FAST</button><button type="button"
-            onclick="location.href='SLOW'">SLOW</button><button type="button"
-            onclick="location.href='RAINBOW'">RAINBOW</button></p>
+    <p><button type="button" onclick="location.href='plus'">+10</button><button type="button"
+            onclick="location.href='minus'">-10</button></p>
+    <p><button type="button" onclick="location.href='fast'">FAST</button><button type="button"
+            onclick="location.href='slow'">SLOW</button><button type="button"
+            onclick="location.href='rainbow'">RAINBOW</button></p>
+    <p><label for='speedInput'>---changeMotorSpeed---</label></p>
+    <p><input type='text' id='speedInput' name='speedInput' required minlength='1' maxlength='4' size='5' /></p>
+
+    <p><button onclick='changeSpeed()'>change!</button></p>
+    <p><button onclick='setPlusSign()'>+</button>
+        <button onclick='setMinusSign()'>-</button>
+        <button onclick='setSpeed(0)'>0</button>
+        <button onclick='setSpeed(1)'>1</button>
+        <button onclick='setSpeed(2)'>2</button>
+        <button onclick='setSpeed(3)'>3</button>
+        <button onclick='setSpeed(4)'>4</button>
+        <button onclick='setSpeed(5)'>5</button>
+        <button onclick='setSpeed(6)'>6</button>
+        <button onclick='setSpeed(7)'>7</button>
+        <button onclick='setSpeed(8)'>8</button>
+        <button onclick='setSpeed(9)'>9</button>
+        <button onclick='resetSpeed()'>reset</button>
+    </p>
+
+    <!-- 以下、JSによる記述 -->
+    <script>function changeSpeed() { var speedValue = document.getElementById('speedInput').value; window.location.href = '/changeSpeed?speed=' + speedValue; }</script>
+    <script> function setPlusSign(value) {
+            var speedInput = document.getElementById('speedInput').value || 0;
+            var originalSpeed = parseInt(speedInput);
+            if (originalSpeed <= 0) {
+                var newValue = originalSpeed * -1;
+                document.getElementById('speedInput').value = newValue.toString();
+            }
+
+        } 
+    </script>
+    <script> function setMinusSign(value) {
+            var speedInput = document.getElementById('speedInput').value || 0;
+            var originalSpeed = parseInt(speedInput);
+            if (originalSpeed >= 0) {
+                var newValue = originalSpeed * -1;
+                document.getElementById('speedInput').value = newValue.toString();
+            }
+        }
+    </script>
+    <script>
+        function setSpeed(value) {
+            var speedInput = document.getElementById('speedInput').value || 0;
+            // 元の速度が0の場合
+            var absoluteSpeed = parseInt(speedInput)
+            if (absoluteSpeed < 0) {
+                absoluteSpeed = absoluteSpeed * -1
+            }
+            if (absoluteSpeed.toString().length === 3) {
+                console.log("元の値が三桁なので何もしません");
+            }
+            else {
+                // 元の値を10倍して新しい値を加える
+                // ここで元の値を取得し、10倍して新しい値を加える処理を書く
+                var originalSpeed = parseInt(speedInput);
+                var newValue = absoluteSpeed * 10 + value;
+                if (originalSpeed < 0) {
+                    newValue = newValue * -1
+                }
+                // 新しい値をspeedInputにセット
+                document.getElementById('speedInput').value = newValue.toString();
+                console.log("元の値を10倍して新しい値を加えました");
+            }
+        }
+    </script>
+    <script> function resetSpeed(value) { document.getElementById('speedInput').value = ''; } </script>
 </body>
 
 </html>
