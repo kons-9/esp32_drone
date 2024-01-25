@@ -12,8 +12,7 @@ void moter_task(void *arg);
 class moter_driver_t {
   private:
     inline void servo_cfg_init(void) {
-        servo.setPeriodHertz(50);
-        servo.attach(out, MOTER_MIN_SIGNAL, MOTER_MAX_SIGNAL);
+        servo.attach(out);
     }
 
   public:
@@ -36,8 +35,8 @@ class moter_driver_t {
     inline void send_pwm_signal(const speed_t speed);
     inline signal_t speed_to_signal(const speed_t speed);
     Servo servo;
-    static constexpr signal_t MOTER_MAX_SIGNAL = 1000;
-    static constexpr signal_t MOTER_MIN_SIGNAL = 500;
+    static constexpr signal_t MOTER_MAX_SIGNAL = 2000;
+    static constexpr signal_t MOTER_MIN_SIGNAL = 1000;
     static constexpr speed_t MOTER_MAX_SPEED = 100;
     static constexpr speed_t MOTER_MIN_SPEED = 0;
     const gpio_num_t out;

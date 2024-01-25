@@ -1,23 +1,26 @@
 #include "led_task.hpp"
+#include "event.hpp"
 
 static const char *TAG = "led_task";
-static constexpr UBaseType_t LED_QUEUE_SIZE = 10;
 
-static QueueHandle_t g_led_queue = NULL;
-static led_task_t s_led_task_type;
+static led_task_t s_led_task_type = led_task_t::FAST;
+static EventGroupHandle_t led_event = xEventGroupCreate();
+static constexpr EventBits_t LED_TYPE_CHANGE_BIT = BIT0;
 
 void change_led_type(const led_task_t task_type) {
-    ESP_LOGI(TAG, "Changing led task type");
-    if (g_led_queue == NULL) {
-        ESP_LOGE(TAG, "g_led_queue is NULL");
-        myexit(1);
+    if (led_event == NULL) {
+        ESP_LOGE(TAG, "drone_event_group is NULL");
+        return;
     }
-    if (xQueueSendToBack(g_led_queue, &task_type, 10) != pdTRUE) {
-        if (xQueueSendToBack(g_led_queue, &task_type, 10) != pdTRUE) {
-            ESP_LOGE(TAG, "Failed to send led task");
-            myexit(1);
-        }
-        s_led_task_type = task_type;
+    ESP_LOGI(TAG, "Changing led task type");
+
+    auto pre = s_led_task_type;
+    s_led_task_type = task_type;
+    if (xEventGroupSetBits(led_event, LED_TYPE_CHANGE_BIT) & LED_TYPE_CHANGE_BIT) {
+        ESP_LOGI(TAG, "Succeeded to send led task");
+    } else {
+        ESP_LOGE(TAG, "Failed to send led task");
+        s_led_task_type = pre;
     }
 }
 
@@ -26,7 +29,12 @@ const char *led_task_to_str(const led_task_t task_type) {
     case FAST: return "FAST";
     case SLOW: return "SLOW";
     case RAINBOW: return "RAINBOW";
-    default: myexit(1);
+    case MAX_SPEED: return "MAX_SPEED";
+    case MIN_SPEED: return "MIN_SPEED";
+    default: {
+        ESP_LOGE(TAG, "Unknown task type");
+        return "Unknown task type";
+    };
     }
 
     return NULL;
@@ -44,15 +52,11 @@ void led_task(void *arg) {
 
 void led_receive_task(void *arg) {
     led_task_manager_t *manager = (led_task_manager_t *)arg;
-    if (g_led_queue == NULL) {
-        ESP_LOGE(TAG, "g_led_queue is NULL");
-        myexit(1);
-    }
-
-    change_led_type(RAINBOW);
 
     while ((volatile bool)(true)) {
-        if (xQueueReceive(g_led_queue, &s_led_task_type, 1000) == pdTRUE) {
+        // clear on exit を on にするとバグる
+        if (xEventGroupWaitBits(led_event, LED_TYPE_CHANGE_BIT, pdFALSE, pdFALSE, portMAX_DELAY)) {
+            xEventGroupClearBits(led_event, LED_TYPE_CHANGE_BIT);
             manager->write(s_led_task_type);
         }
     }
@@ -80,6 +84,14 @@ void led_task_manager_t::run() {
             }
             rainbow_exec();
             break;
+        case MAX_SPEED:
+            ESP_LOGI(TAG, "MAX_SPEED");
+            max_speed_exec();
+            break;
+        case MIN_SPEED:
+            ESP_LOGI(TAG, "MIN_SPEED");
+            min_speed_exec();
+            break;
         default:
             ESP_LOGE(TAG, "Unknown task type");
             ESP_LOGI(TAG, "reset task type to FAST");
@@ -91,22 +103,17 @@ void led_task_manager_t::run() {
 
 void led_task_manager_t::init() {
     ESP_LOGI(TAG, "Initializing LED Task Manager");
-    g_led_queue = xQueueCreate(LED_QUEUE_SIZE, sizeof(led_task_t));
-    if (g_led_queue == NULL) {
-        ESP_LOGE(TAG, "Failed to create queue");
-        myexit(1);
-    }
     strip.begin();
     strip.show();  // Initialize all pixels to 'off'
-
-    ESP_LOGI(TAG, "Initializing LED Task Manager done");
 }
 
 void inline led_task_manager_t::fast_exec() {
+    debug_led_state = 1 ^ debug_led_state;
     gpio_set_level(debug_led_pin, debug_led_state);
     vTaskMilliSecondDelay(1000);
 }
 void inline led_task_manager_t::slow_exec() {
+    debug_led_state = 1 ^ debug_led_state;
     gpio_set_level(debug_led_pin, debug_led_state);
     vTaskMilliSecondDelay(2000);
 }
@@ -115,6 +122,17 @@ void inline led_task_manager_t::rainbow_exec() {
     rainbow_cycle(rainbow_cnt);
     vTaskMilliSecondDelay(RAINBOW_DELAY);
     rainbow_cnt++;
+}
+void inline led_task_manager_t::max_speed_exec() {
+    strip.setPixelColor(0, strip.Color(255, 0, 0));
+    strip.show();
+    vTaskMilliSecondDelay(100);
+}
+
+void inline led_task_manager_t::min_speed_exec() {
+    strip.setPixelColor(0, strip.Color(0, 255, 0));
+    strip.show();
+    vTaskMilliSecondDelay(100);
 }
 
 uint32_t inline led_task_manager_t::wheel(uint8_t wheelPos) {
@@ -135,9 +153,10 @@ uint32_t inline led_task_manager_t::wheel(uint8_t wheelPos) {
 
 void inline led_task_manager_t::rainbow_cycle(uint16_t rainbow_cnt) {
     constexpr uint8_t div_256 = 256 / NUMPIXELS;
+    static_assert(256 % NUMPIXELS == 0, "NUMPIXELS should be divisor of 256");
 
-    for (uint16_t i = 0, j = 0; i < strip.numPixels(); i++, j += div_256) {
-        strip.setPixelColor(i, wheel(((j + rainbow_cnt) & 255)));
+    for (uint16_t i = 0, j = rainbow_cnt; i < strip.numPixels(); i++, j += div_256) {
+        strip.setPixelColor(i, wheel((j & 255)));
     }
     strip.show();
 }

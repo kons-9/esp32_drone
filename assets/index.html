@@ -33,6 +33,7 @@
     <h2>Current Status</h2>
     <h3>speed: %d</h3>
     <h3>led: %s</h3>
+    <p><button type="button" onclick="location.href='start'">START</button></p>
     <p><button type="button" onclick="location.href='plus'">+10</button><button type="button"
             onclick="location.href='minus'">-10</button></p>
     <p><button type="button" onclick="location.href='fast'">FAST</button><button type="button"
@@ -58,18 +59,18 @@
     </p>
 
     <!-- 以下、JSによる記述 -->
-    <script>function changeSpeed() { var speedValue = document.getElementById('speedInput').value; window.location.href = '/changeSpeed?speed=' + speedValue; }</script>
-    <script> function setPlusSign(value) {
+    <script>
+        "use strict";
+        function changeSpeed() { var speedValue = document.getElementById('speedInput').value; window.location.href = 'changeSpeed?speed=' + speedValue; }
+        function setPlusSign(value) {
             var speedInput = document.getElementById('speedInput').value || 0;
             var originalSpeed = parseInt(speedInput);
             if (originalSpeed <= 0) {
                 var newValue = originalSpeed * -1;
                 document.getElementById('speedInput').value = newValue.toString();
             }
-
-        } 
-    </script>
-    <script> function setMinusSign(value) {
+        }
+        function setMinusSign(value) {
             var speedInput = document.getElementById('speedInput').value || 0;
             var originalSpeed = parseInt(speedInput);
             if (originalSpeed >= 0) {
@@ -77,17 +78,16 @@
                 document.getElementById('speedInput').value = newValue.toString();
             }
         }
-    </script>
-    <script>
         function setSpeed(value) {
-            var speedInput = document.getElementById('speedInput').value || 0;
+            var speedInput = document.getElementById('speedInput').value || 0; // tmp
             // 元の速度が0の場合
-            var absoluteSpeed = parseInt(speedInput)
+            var absoluteSpeed = parseInt(speedInput);
             if (absoluteSpeed < 0) {
-                absoluteSpeed = absoluteSpeed * -1
+                absoluteSpeed = absoluteSpeed * -1;
             }
             if (absoluteSpeed.toString().length === 3) {
-                console.log("元の値が三桁なので何もしません");
+                // console.log("元の値が三桁なので何もしません");
+                console.log("do nothing because the original value is three digits");
             }
             else {
                 // 元の値を10倍して新しい値を加える
@@ -95,15 +95,16 @@
                 var originalSpeed = parseInt(speedInput);
                 var newValue = absoluteSpeed * 10 + value;
                 if (originalSpeed < 0) {
-                    newValue = newValue * -1
+                    newValue = newValue * -1;
                 }
                 // 新しい値をspeedInputにセット
                 document.getElementById('speedInput').value = newValue.toString();
-                console.log("元の値を10倍して新しい値を加えました");
+                // console.log("元の値を10倍して新しい値を加えました");
+                console.log("add the new value after multiplying the original value by 10");
             }
         }
+        function resetSpeed(value) { document.getElementById('speedInput').value = ''; } 
     </script>
-    <script> function resetSpeed(value) { document.getElementById('speedInput').value = ''; } </script>
 </body>
 
 </html>
