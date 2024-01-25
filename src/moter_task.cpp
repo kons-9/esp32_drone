@@ -5,7 +5,7 @@
 static const char *TAG = "moter_task";
 
 constexpr static uint16_t SAFE_CNT_MAX = 1000;
-constexpr static TickType_t MOTER_TASK_DELAY = 1000;
+constexpr static TickType_t MOTER_TASK_DELAY = 10;
 
 static EventGroupHandle_t moter_event = xEventGroupCreate();
 static constexpr EventBits_t MOTER_SPEED_CHANGE_BIT = BIT0;
@@ -77,15 +77,22 @@ inline signal_t moter_driver_t::speed_to_signal(const speed_t speed) {
     return RATIO * speed + MOTER_MIN_SIGNAL;
 }
 
+static bool flag = false;
+
 void moter_driver_t::exec(speed_t speed) {
-    if (speed > MOTER_MAX_SPEED) {
+    if (speed >= MOTER_MAX_SPEED) {
         speed = MOTER_MAX_SPEED;
-        ESP_LOGW(TAG, "speed is over MOTER_MAX_SPEED");
+        ESP_LOGW(TAG, "speed is MOTER_MAX_SPEED");
         change_led_type(led_task_t::MAX_SPEED);
-    } else if (speed < MOTER_MIN_SPEED) {
+        flag = true;
+    } else if (speed <= MOTER_MIN_SPEED) {
         speed = MOTER_MIN_SPEED;
-        ESP_LOGW(TAG, "speed is under MOTER_MIN_SPEED");
+        ESP_LOGW(TAG, "speed is MOTER_MIN_SPEED");
         change_led_type(led_task_t::MIN_SPEED);
+        flag = true;
+    }
+    if (flag) {
+        change_led_type(led_task_t::RAINBOW);
     }
 
     send_pwm_signal(speed_to_signal(speed));

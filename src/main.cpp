@@ -30,9 +30,9 @@ void setup() {
     xTaskCreate(wifi_task, "wifi_info", 2048, NULL, COMMUNICATION_TASK_PRIORITY, NULL);
 
     ESP_LOGI("app_main", "Waiting for start operation...");
-    // wait_start_task();
+    wait_start_task();
     ESP_LOGI("app_main", "start operation has received!");
-    // delete_start_task();
+    delete_start_task();
 
     moter_driver.init();
 

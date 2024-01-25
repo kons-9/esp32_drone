@@ -26,7 +26,7 @@ void webserver_init(void) {
         speed += 10;
         request->redirect("/");
         change_speed(speed);
-        ESP_LOGI("webserver", "PLUSBUTTON is Pressed");
+        // ESP_LOGI("webserver", "PLUSBUTTON is Pressed");
     });
     // マイナスボタンにアクセスされた時のレスポンス
     server.on("/minus", HTTP_GET, [](AsyncWebServerRequest *request) {
@@ -38,7 +38,7 @@ void webserver_init(void) {
         }
         request->redirect("/");
         change_speed(speed);
-        ESP_LOGI("webserver", "MINUSBUTTON is Pressed");
+        // ESP_LOGI("webserver", "MINUSBUTTON is Pressed");
     });
 
     server.on("/slow", HTTP_GET, [](AsyncWebServerRequest *request) {
@@ -82,11 +82,11 @@ void webserver_init(void) {
         request->redirect("/");
     });
 
-    // server.on("/start", HTTP_GET, [](AsyncWebServerRequest *request) {
-    //     ESP_LOGI("webserver", "start_task");
-    // start_task();
-    //     request->redirect("/");
-    // });
+    server.on("/start", HTTP_GET, [](AsyncWebServerRequest *request) {
+        ESP_LOGI("webserver", "start_task");
+        start_task();
+        request->redirect("/");
+    });
     server.begin();
     ESP_LOGI("webserver", "ESP32_WebServer start!");
 }
