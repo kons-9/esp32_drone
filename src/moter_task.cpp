@@ -5,16 +5,21 @@
 static const char *TAG = "moter_task";
 
 constexpr static uint16_t SAFE_CNT_MAX = 1000;
-constexpr static TickType_t MOTER_TASK_DELAY = 10;
+constexpr static TickType_t MOTER_TASK_DELAY = 1000;
+
+static EventGroupHandle_t moter_event = xEventGroupCreate();
+static constexpr EventBits_t MOTER_SPEED_CHANGE_BIT = BIT0;
 
 static speed_t speed = 0;
 
 void change_speed(const speed_t next_speed) {
     ESP_LOGI(TAG, "Changing speed");
     speed = next_speed;
-    if (xEventGroupSetBits(drone_event_group, (EventBits_t)drone_event_bit_t::MOTER_SPEED_CHANGE) != pdPASS) {
+    if (xEventGroupSetBits(moter_event, MOTER_SPEED_CHANGE_BIT) & MOTER_SPEED_CHANGE_BIT) {
+        ESP_LOGI(TAG, "Succeeded to send speed");
+    } else {
         ESP_LOGE(TAG, "Failed to send speed");
-        myexit(1);
+        speed = 0;
     }
 }
 
@@ -27,11 +32,9 @@ void moter_task(void *arg) {
     uint16_t safe_cnt = 0;
 
     while (true) {
-        if (xEventGroupWaitBits(drone_event_group,
-                                (EventBits_t)drone_event_bit_t::MOTER_SPEED_CHANGE,
-                                pdTRUE,
-                                pdFALSE,
-                                MOTER_TASK_DELAY)) {
+        // clear on exit を on にするとバグる
+        if (xEventGroupWaitBits(moter_event, MOTER_SPEED_CHANGE_BIT, pdFALSE, pdFALSE, MOTER_TASK_DELAY)) {
+            xEventGroupClearBits(moter_event, MOTER_SPEED_CHANGE_BIT);
             safe_cnt = 0;
             ESP_LOGI(TAG, "speed: %d", (uint8_t)speed);
             driver->exec(speed);
@@ -40,6 +43,7 @@ void moter_task(void *arg) {
             if (safe_cnt > SAFE_CNT_MAX) {
                 ESP_LOGW(TAG, "safe_cnt is over 1000, so speed is set to 0");
                 speed = 0;
+                safe_cnt = 0;
             }
             // send speed periodically
             driver->exec(speed);

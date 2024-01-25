@@ -49,13 +49,17 @@ void display_wifi_info(void) {
 
 void wifi_task(void *arg) {
     webserver_init();
+    auto cnt = 0;
     while (true) {
         if (!wifi_is_connected()) {
             ESP_LOGW(TAG, "WiFi is not connected");
             wifi_reset();
             webserver_reset();
         } else {
-            display_wifi_info();
+            if (cnt % 10 == 0) {
+                display_wifi_info();
+            }
+            cnt++;
             vTaskMilliSecondDelay(10000);
         }
     }

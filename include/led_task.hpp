@@ -18,7 +18,7 @@ const char *led_task_to_str(led_task_t task_type);
 
 class led_task_manager_t {
   public:
-    led_task_manager_t(gpio_num_t pin, gpio_num_t debug_pin = GPIO_NUM_3)
+    led_task_manager_t(gpio_num_t pin, gpio_num_t debug_pin)
         : led_pin(pin)
         , debug_led_pin(debug_pin)
         , led_task_type(FAST)

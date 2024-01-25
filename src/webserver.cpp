@@ -71,21 +71,22 @@ void webserver_init(void) {
             // ここの処理は考える必要がある。現状-999から+999までの値が送られてくる...はず
             speed_t speed = get_speed();
             String speedParam = request->getParam("speed")->value();
-            int newSpeed = speedParam.toInt();
+            speed_t newSpeed = speedParam.toInt();
             speed = newSpeed;
             change_speed(speed);
-            Serial.println("Speed is set to: " + String(newSpeed));
+            speed = get_speed();
+            ESP_LOGI("webserver", "speed is changed to %d", speed);
+        } else {
+            ESP_LOGW("webserver", "Invalid param: speed is not changed");
         }
         request->redirect("/");
     });
 
-    server.on("/startTask", HTTP_GET, [](AsyncWebServerRequest *request) {
-        if (request->hasParam("speed")) {
-            ESP_LOGI("webserver", "start_task");
-            xEventGroupSetBits(drone_event_group, (EventBits_t)drone_event_bit_t::START_TASK);
-        }
-        request->redirect("/");
-    });
+    // server.on("/start", HTTP_GET, [](AsyncWebServerRequest *request) {
+    //     ESP_LOGI("webserver", "start_task");
+    // start_task();
+    //     request->redirect("/");
+    // });
     server.begin();
     ESP_LOGI("webserver", "ESP32_WebServer start!");
 }
